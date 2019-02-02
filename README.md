@@ -2,7 +2,7 @@
 
 Special thanks to openflights for making this high quality data readily available for use in multiple formats.
 
-This repository attempts to follow golang [common project structure](https://github.com/golang-standards/project-layout).
+This repository attempts to follow golang [common project structure](https://github.com/golang-standards/project-layout)git c.
 
 This repository contains:
 

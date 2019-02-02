@@ -17,8 +17,17 @@ import (
 	directory
 */
 func main() {
+	// get airports and airlines
+	// airports, airlines := ParseHandler()
+	// fetch the connection information
 	connCFG := GetConnectionConfiguration()
-	fmt.Printf("%v", connCFG)
+	// connect to and defer close of db
+	db := connect(connCFG)
+	defer db.Close()
+
+}
+
+func connect(connCFG ConnectionConfiguration) *sql.DB {
 	clientCert := "../../certificates/client-cert.pem"
 	clientKey := "../../certificates/client-key.pem"
 	serverCA := "../../certificates/server-ca.pem"
@@ -36,10 +45,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Print("Connected Successfully")
+	fmt.Printf("Connected Successfully to %s", connCFG.Host)
+	return db
 }

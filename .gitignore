@@ -21,3 +21,6 @@
 
 # Configurations
 *.config.json
+
+# debugging files
+debug

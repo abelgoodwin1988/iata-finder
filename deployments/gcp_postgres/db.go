@@ -4,8 +4,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"log"
 
 	_ "github.com/lib/pq"
+	"github.com/pkg/errors"
 )
 
 /**
@@ -18,13 +21,30 @@ import (
 */
 func main() {
 	// get airports and airlines
-	// airports, airlines := ParseHandler()
+	airports, airlines := ParseHandler()
 	// fetch the connection information
 	connCFG := GetConnectionConfiguration()
 	// connect to and defer close of db
 	db := connect(connCFG)
 	defer db.Close()
-
+	// Create the tables by loading the creation script into
+	//	a string var, and executing it against the db.
+	createTables, _ := ioutil.ReadFile("./scripts/0001_01_create_tables.sql")
+	createTablesS := string(createTables)
+	if _, err := db.Exec(createTablesS); err != nil {
+		err = errors.Wrapf(err, "Table creation query failed (%s)", createTablesS)
+	}
+	// Insert records returned from ParseHandler into the DB
+	insertAirport := "INSERT INTO airport (id, name, city, country, iata, icao, latitude, longitude, altitude, timezone, daylight_savings_time, tz, type, source) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	if _, err := db.Exec(insertAirport, airports); err != nil {
+		log.Fatal(err)
+	}
+	insertAirline := "INSERT INTO airline (id,  name,  iata,  icao,  callsign,  country,  active) " +
+		"VALUES (?,  ?,  ?,  ?,  ?,  ?,  ?)"
+	if _, err := db.Exec(insertAirline, airlines); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func connect(connCFG ConnectionConfiguration) *sql.DB {

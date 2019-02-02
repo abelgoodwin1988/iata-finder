@@ -93,7 +93,7 @@ func ParseHandler() ([]Airport, []Airline) {
 			Active:   line[6],
 		})
 	}
-	fmt.Printf("Airports: %v \nAirlines: %v", len(airport), len(airline))
+	fmt.Printf("Airports: %v \nAirlines: %v\n", len(airport), len(airline))
 	return airport, airline
 }
 

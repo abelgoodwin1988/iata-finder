@@ -16,9 +16,9 @@ CREATE TABLE airport (
     ,country                VARCHAR
     ,iata                   CHAR(3)
     ,icao                   CHAR(4)
-    ,latitude               NUMBER
-    ,longitude              NUMBER
-    ,altitude               NUMBER
+    ,latitude               NUMERIC
+    ,longitude              NUMERIC
+    ,altitude               NUMERIC
     ,timezone               VARCHAR
     ,daylight_savings_time  CHAR(1)
     ,tz                     VARCHAR

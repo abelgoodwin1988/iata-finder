@@ -21,7 +21,7 @@ CREATE TABLE airport (
     ,altitude               NUMBER
     ,timezone               VARCHAR
     ,daylight_savings_time  CHAR(1)
-    ,timezone               VARCHAR
+    ,tz                     VARCHAR
     ,type                   VARCHAR
     ,source                 VARCHAR
 );

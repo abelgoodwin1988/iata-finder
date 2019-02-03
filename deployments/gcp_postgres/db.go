@@ -2,12 +2,11 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"log"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx"
 	"github.com/pkg/errors"
 )
 
@@ -34,41 +33,71 @@ func main() {
 	if _, err := db.Exec(createTablesS); err != nil {
 		err = errors.Wrapf(err, "Table creation query failed (%s)", createTablesS)
 	}
-	// Insert records returned from ParseHandler into the DB
-	insertAirport := "INSERT INTO airport (id, name, city, country, iata, icao, latitude, longitude, altitude, timezone, daylight_savings_time, tz, type, source) " +
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	if _, err := db.Exec(insertAirport, airports); err != nil {
-		log.Fatal(err)
+
+	if copyCount, err := db.CopyFrom(
+		pgx.Identifier{"airport"},
+		[]string{
+			"id",
+			"name",
+			"city",
+			"country",
+			"iata",
+			"icao",
+			"latitude",
+			"longitude",
+			"altitude",
+			"timezone",
+			"daylight_savings_time",
+			"tz",
+			"type",
+			"source",
+		},
+		pgx.CopyFromRows(airports.Values()),
+	); err != nil {
+		log.Panic(err)
+	} else {
+		fmt.Printf("Inserted %v records into airport\n", copyCount)
 	}
-	insertAirline := "INSERT INTO airline (id,  name,  iata,  icao,  callsign,  country,  active) " +
-		"VALUES (?,  ?,  ?,  ?,  ?,  ?,  ?)"
-	if _, err := db.Exec(insertAirline, airlines); err != nil {
-		log.Fatal(err)
+
+	if copyCount, err := db.CopyFrom(
+		pgx.Identifier{"airline"},
+		[]string{
+			"id",
+			"name",
+			"iata",
+			"icao",
+			"callsign",
+			"country",
+			"active",
+		},
+		pgx.CopyFromRows(airlines.Values()),
+	); err != nil {
+		log.Panic(err)
+	} else {
+		fmt.Printf("Inserted %v records into airline\n", copyCount)
 	}
 }
 
-func connect(connCFG ConnectionConfiguration) *sql.DB {
-	clientCert := "../../certificates/client-cert.pem"
-	clientKey := "../../certificates/client-key.pem"
-	serverCA := "../../certificates/server-ca.pem"
-	psqlConn := fmt.Sprintf("sslmode=verify-ca sslrootcert=%s sslcert=%s sslkey=%s host=%s port=%s user=%s dbname=%s password=%s",
-		serverCA,
-		clientCert,
-		clientKey,
+func connect(connCFG ConnectionConfiguration) *pgx.Conn {
+	// clientCert := "../../certificates/client-cert.pem"
+	// clientKey := "../../certificates/client-key.pem"
+	// serverCA := "../../certificates/server-ca.pem"
+	// sslmode=verify-ca sslrootcert=%s sslcert=%s sslkey=%s
+	psqlConn := fmt.Sprintf("host=%s port=%v user=%s dbname=%s password=%s",
+		// serverCA,
+		// clientCert,
+		// clientKey,
 		connCFG.Host,
 		connCFG.Port,
 		connCFG.User,
 		connCFG.Dbname,
 		connCFG.Password,
 	)
-	db, err := sql.Open("postgres", psqlConn)
+	conn, _ := pgx.ParseConnectionString(psqlConn)
+	db, err := pgx.Connect(conn)
 	if err != nil {
 		panic(err)
 	}
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Connected Successfully to %s", connCFG.Host)
+	fmt.Printf("Connected Successfully to %s\n", connCFG.Host)
 	return db
 }

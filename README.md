@@ -26,6 +26,8 @@ I was having trouble finding an API that easily made available airport & airline
 
 ### Postgres Deployment
 Find the `gcp_postgres` folder in the deployments main dir. In there, add a connection.config.json file following the specs in the connectino.config.sample.json.
-At current the DB is not using SSL, but I plan to add in SSL as soon as I figure out how to config `pgx` to accept ssl certs for it's connection statement.
 With assurance that you have the correct airlines.csv and airports.csv in the `/assets/` folder, you can run the db.go file and it will copy the csv contents
 to your specificed db. Note that the copy happens to the postgres public schema, this can easily be changed by specifing the schema in the copy statements.
+
+If you intend to use true SSL without verification skip, be sure to disable `InsecureSkipVerify: true,` in the main() func of `db.go`; my implementation is for testing
+and as such I have not assigned any DNS, giving IP SANs err for certificate verification.

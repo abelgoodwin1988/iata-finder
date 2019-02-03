@@ -10,42 +10,11 @@ import (
 	"strconv"
 )
 
-// Airline is a struct representing openflights data for
-//	IATA airline data
-type Airline struct {
-	ID       int
-	Name     string
-	Iata     string
-	Icao     string
-	Callsign string
-	Country  string
-	Active   string
-}
-
-// Airport is a struct representing openflight data for
-//	IATA airport data
-type Airport struct {
-	ID                  int
-	Name                string
-	City                string
-	Country             string
-	Iata                string
-	Icao                string
-	Latitude            float64
-	Longitude           float64
-	Altitude            float64
-	timezone            string
-	daylightSavingsTime string
-	Tz                  string
-	TypeField           string
-	Source              string
-}
-
 // ParseHandler routes and manages the parsing process from
 //	csv's to go data structs and returns them
-func ParseHandler() ([]Airport, []Airline) {
-	var airport []Airport
-	var airline []Airline
+func ParseHandler() (Airports, Airlines) {
+	var airport Airports
+	var airline Airlines
 	csvF, _ := os.Open("../../assets/airports.csv")
 	reader := csv.NewReader(bufio.NewReader(csvF))
 	for {
@@ -66,8 +35,8 @@ func ParseHandler() ([]Airport, []Airline) {
 			Latitude:            mustFloat(line[6]),
 			Longitude:           mustFloat(line[7]),
 			Altitude:            mustFloat(line[8]),
-			timezone:            line[9],
-			daylightSavingsTime: line[10],
+			Timezone:            line[9],
+			DaylightSavingsTime: line[10],
 			Tz:                  line[11],
 			TypeField:           line[12],
 			Source:              line[13],
@@ -93,7 +62,7 @@ func ParseHandler() ([]Airport, []Airline) {
 			Active:   line[6],
 		})
 	}
-	fmt.Printf("Airports: %v \nAirlines: %v\n", len(airport), len(airline))
+	fmt.Printf("Airports read in: %v \nAirlines read in: %v\n", len(airport), len(airline))
 	return airport, airline
 }
 
@@ -112,15 +81,3 @@ func mustFloat(s string) float64 {
 	}
 	return f
 }
-
-// func setNulLValues(line string, char string) []string {
-// 	cleaned := []string{}
-// 	for i := range line {
-// 		if line[i] == char {
-// 			cleaned = append(cleaned, "")
-// 			continue
-// 		}
-// 		cleaned = append(cleaned, line[i])
-// 	}
-// 	return cleaned
-// }

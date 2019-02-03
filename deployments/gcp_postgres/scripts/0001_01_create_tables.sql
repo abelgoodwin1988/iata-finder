@@ -20,7 +20,7 @@ CREATE TABLE airport (
     ,longitude              NUMERIC
     ,altitude               NUMERIC
     ,timezone               VARCHAR
-    ,daylight_savings_time  CHAR(1)
+    ,daylight_savings_time  VARCHAR
     ,tz                     VARCHAR
     ,type                   VARCHAR
     ,source                 VARCHAR
@@ -29,9 +29,10 @@ CREATE TABLE airport (
 CREATE TABLE airline (
      id                     INTEGER
     ,name                   VARCHAR
-    ,iata                   CHAR(2)
-    ,icao                   CHAR(3)
+    ,alias                  VARCHAR
+    ,iata                   VARCHAR
+    ,icao                   VARCHAR
     ,callsign               VARCHAR
     ,country                VARCHAR
-    ,active                 CHAR(1)
+    ,active                 VARCHAR
 );

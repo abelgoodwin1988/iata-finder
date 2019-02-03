@@ -33,49 +33,27 @@ func main() {
 	if _, err := db.Exec(createTablesS); err != nil {
 		err = errors.Wrapf(err, "Table creation query failed (%s)", createTablesS)
 	}
-
+	// Use the postgres copy protocol for a quicker bulk insert of data.
+	//	First copy in airports, and then copy in airlines.
 	if copyCount, err := db.CopyFrom(
 		pgx.Identifier{"airport"},
-		[]string{
-			"id",
-			"name",
-			"city",
-			"country",
-			"iata",
-			"icao",
-			"latitude",
-			"longitude",
-			"altitude",
-			"timezone",
-			"daylight_savings_time",
-			"tz",
-			"type",
-			"source",
-		},
+		[]string{"id", "name", "city", "country", "iata", "icao", "latitude", "longitude", "altitude", "timezone", "daylight_savings_time", "tz", "type", "source"},
 		pgx.CopyFromRows(airports.Values()),
 	); err != nil {
 		log.Panic(err)
 	} else {
 		fmt.Printf("Inserted %v records into airport\n", copyCount)
 	}
-
 	if copyCount, err := db.CopyFrom(
 		pgx.Identifier{"airline"},
-		[]string{
-			"id",
-			"name",
-			"iata",
-			"icao",
-			"callsign",
-			"country",
-			"active",
-		},
+		[]string{"id", "name", "iata", "icao", "callsign", "country", "active"},
 		pgx.CopyFromRows(airlines.Values()),
 	); err != nil {
 		log.Panic(err)
 	} else {
 		fmt.Printf("Inserted %v records into airline\n", copyCount)
 	}
+	fmt.Println("Success!")
 }
 
 func connect(connCFG ConnectionConfiguration) *pgx.Conn {

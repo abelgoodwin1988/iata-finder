@@ -2,6 +2,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -57,21 +59,32 @@ func main() {
 }
 
 func connect(connCFG ConnectionConfiguration) *pgx.Conn {
-	// clientCert := "../../certificates/client-cert.pem"
-	// clientKey := "../../certificates/client-key.pem"
-	// serverCA := "../../certificates/server-ca.pem"
-	// sslmode=verify-ca sslrootcert=%s sslcert=%s sslkey=%s
-	psqlConn := fmt.Sprintf("host=%s port=%v user=%s dbname=%s password=%s",
-		// serverCA,
-		// clientCert,
-		// clientKey,
-		connCFG.Host,
-		connCFG.Port,
-		connCFG.User,
-		connCFG.Dbname,
-		connCFG.Password,
-	)
-	conn, _ := pgx.ParseConnectionString(psqlConn)
+	// Enumerate the certs required with relative paths.
+	clientCert := "../../certificates/client-cert.pem"
+	clientKey := "../../certificates/client-key.pem"
+	serverCA := "../../certificates/server-ca.pem"
+	// Create keypair for client key/key
+	client, err := tls.LoadX509KeyPair(clientCert, clientKey)
+	if err != nil {
+		log.Panic(err)
+	}
+	// Create CA cert pool for root ca
+	roots := x509.NewCertPool()
+	certCA, _ := ioutil.ReadFile(serverCA)
+	roots.AppendCertsFromPEM(certCA)
+	conn := pgx.ConnConfig{
+		Host:     connCFG.Host,
+		Port:     connCFG.Port,
+		Database: connCFG.Dbname,
+		User:     connCFG.User,
+		Password: connCFG.Password,
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         connCFG.Host,
+			Certificates:       []tls.Certificate{client},
+			RootCAs:            roots,
+		},
+	}
 	db, err := pgx.Connect(conn)
 	if err != nil {
 		panic(err)

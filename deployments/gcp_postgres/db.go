@@ -26,8 +26,12 @@ func main() {
 	// fetch the connection information
 	connCFG := GetConnectionConfiguration()
 	// connect to and defer close of db
-	db := connect(connCFG)
+	db, err := connect(connCFG)
+	if err != nil {
+		log.Errorf("Failed to create database Connection: %v", err)
+	}
 	defer db.Close()
+
 	// Create the tables by loading the creation script into
 	//	a string var, and executing it against the db.
 	createTables, _ := ioutil.ReadFile("./scripts/0001_01_create_tables.sql")
@@ -35,6 +39,7 @@ func main() {
 	if _, err := db.Exec(createTablesS); err != nil {
 		err = errors.Wrapf(err, "Table creation query failed (%s)", createTablesS)
 	}
+	
 	// Use the postgres copy protocol for a quicker bulk insert of data.
 	//	First copy in airports, and then copy in airlines.
 	if copyCount, err := db.CopyFrom(
@@ -42,7 +47,7 @@ func main() {
 		[]string{"id", "name", "city", "country", "iata", "icao", "latitude", "longitude", "altitude", "timezone", "daylight_savings_time", "tz", "type", "source"},
 		pgx.CopyFromRows(airports.Values()),
 	); err != nil {
-		log.Panic(err)
+		log.Errorf("Failed to use postgres copy protocol to copy data to airports: %v", err)
 	} else {
 		fmt.Printf("Inserted %v records into airport\n", copyCount)
 	}
@@ -51,14 +56,14 @@ func main() {
 		[]string{"id", "name", "iata", "icao", "callsign", "country", "active"},
 		pgx.CopyFromRows(airlines.Values()),
 	); err != nil {
-		log.Panic(err)
+		log.Errorf("Failed to use postgres copy protocol to copy data to airlines: %v", err)
 	} else {
 		fmt.Printf("Inserted %v records into airline\n", copyCount)
 	}
 	fmt.Println("Success!")
 }
 
-func connect(connCFG ConnectionConfiguration) *pgx.Conn {
+func connect(connCFG ConnectionConfiguration) *pgx.Conn, error {
 	// Enumerate the certs required with relative paths.
 	clientCert := "../../certificates/client-cert.pem"
 	clientKey := "../../certificates/client-key.pem"
@@ -66,8 +71,10 @@ func connect(connCFG ConnectionConfiguration) *pgx.Conn {
 	// Create keypair for client key/key
 	client, err := tls.LoadX509KeyPair(clientCert, clientKey)
 	if err != nil {
-		log.Panic(err)
+		log.Errorf("Failed to create X509 Key Pair: %v")
+		return nil, err
 	}
+
 	// Create CA cert pool for root ca
 	roots := x509.NewCertPool()
 	certCA, _ := ioutil.ReadFile(serverCA)
@@ -87,8 +94,10 @@ func connect(connCFG ConnectionConfiguration) *pgx.Conn {
 	}
 	db, err := pgx.Connect(conn)
 	if err != nil {
-		panic(err)
+		log.Errorf("Failed to connect: %v", err)
+		return nil, err
 	}
+
 	fmt.Printf("Connected Successfully to %s\n", connCFG.Host)
-	return db
+	return db, nil
 }

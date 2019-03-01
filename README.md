@@ -15,6 +15,7 @@ This repository contains:
 - [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
+- [Todo](#todo)
 
 ## Background
 
@@ -31,3 +32,8 @@ to your specificed db. Note that the copy happens to the postgres public schema,
 
 If you intend to use true SSL without verification skip, be sure to disable `InsecureSkipVerify: true,` in the main() func of `db.go`; my implementation is for testing
 and as such I have not assigned any DNS, giving IP SANs err for certificate verification.
+
+## Todo
+
+- Implement struct for managing the db connection in the ETL script.
+- Organize the execution of the copy protocol in a beter way

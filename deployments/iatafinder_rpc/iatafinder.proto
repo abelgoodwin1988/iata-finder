@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package iatafinder;
+
+service iatafinder {
+    rpc GetAirports(EmptyRequest) returns(Airport) {}
+}
+
+message Airport {
+    int32   id                     = 1;
+    string  name                   = 2;
+    string  city                   = 3;
+    string  country                = 4;
+    string  iata                   = 5;
+    string  icao                   = 6;
+    double  latitude               = 7;
+    double  longitude              = 8;
+    double  altitude               = 9;
+    string  timezone               = 10;
+    string  daylight_savings_time  = 11;
+    string  tz                     = 12;
+    string  type                   = 13;
+    string  source                 = 14;
+}
+
+message EmptyRequest {}

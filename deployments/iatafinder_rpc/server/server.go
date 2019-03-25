@@ -24,6 +24,10 @@ func main() {
 	s := grpc.NewServer()
 
 	iatafinder.RegisterIatafinderServer(s, &server{})
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to start iatafinder server\n%v\n", err)
+	}
 }
 
 func (*server) GetAirport(ctx context.Context, in *iatafinder.AirportDescriptor) (*iatafinder.Airports, error) {
@@ -32,4 +36,12 @@ func (*server) GetAirport(ctx context.Context, in *iatafinder.AirportDescriptor)
 
 func (*server) GetAirportIATA(ctx context.Context, in *iatafinder.IATA) (*iatafinder.Airport, error) {
 	return &iatafinder.Airport{}, nil
+}
+
+func (*server) GetAirportICAO(ct context.Context, in *iatafinder.ICAO) (*iatafinder.Airport, error) {
+	return &iatafinder.Airport{}, nil
+}
+
+func (*server) GetAirports(ctx context.Context, in *iatafinder.EmptyRequest) (*iatafinder.Airports, error) {
+	return &iatafinder.Airports{}, nil
 }

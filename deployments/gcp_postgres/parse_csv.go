@@ -54,12 +54,13 @@ func ParseHandler() (Airports, Airlines) {
 		// line = setNullValues(line, "\N")
 		airline = append(airline, Airline{
 			ID:       mustAtoi(line[0]),
-			Iata:     line[1],
-			Name:     line[2],
-			Icao:     line[3],
-			Callsign: line[4],
-			Country:  line[5],
-			Active:   line[6],
+			Name:     line[1],
+			Alias:    line[2],
+			Iata:     line[3],
+			Icao:     line[4],
+			Callsign: line[5],
+			Country:  line[6],
+			Active:   line[7],
 		})
 	}
 	fmt.Printf("Airports read in: %v \nAirlines read in: %v\n", len(airport), len(airline))

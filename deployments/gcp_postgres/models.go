@@ -5,6 +5,7 @@ package main
 type Airline struct {
 	ID       int
 	Name     string
+	Alias    string
 	Iata     string
 	Icao     string
 	Callsign string
@@ -39,7 +40,7 @@ type Airports []Airport
 
 // Values returns values of Airline
 func (a Airline) Values() []interface{} {
-	return []interface{}{a.ID, a.Name, a.Iata, a.Icao, a.Callsign, a.Country, a.Active}
+	return []interface{}{a.ID, a.Name, a.Alias, a.Iata, a.Icao, a.Callsign, a.Country, a.Active}
 }
 
 // Values returns values of Airport

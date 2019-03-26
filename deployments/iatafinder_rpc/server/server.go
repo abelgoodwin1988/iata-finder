@@ -35,7 +35,7 @@ func (*server) GetAirport(ctx context.Context, in *iatafinder.AirportDescriptor)
 }
 
 func (*server) GetAirportIATA(ctx context.Context, in *iatafinder.IATA) (*iatafinder.Airport, error) {
-	return &iatafinder.Airport{}, nil
+	return &iatafinder.Airport{Iata: "success", Name: "JFK"}, nil
 }
 
 func (*server) GetAirportICAO(ct context.Context, in *iatafinder.ICAO) (*iatafinder.Airport, error) {

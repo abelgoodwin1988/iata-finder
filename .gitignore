@@ -1,3 +1,6 @@
+# Ignore the vendor directory
+vendor/
+
 # Mac OS X files
 .DS_Store
 
@@ -21,6 +24,7 @@
 
 # Configurations
 *.config.json
+*.config.toml
 
 # debugging files
 debug

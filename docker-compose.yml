@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  rpc:
+    image: abelgoodwin1988/iata-finder:latest
+    container_name: iata-finder
+    ports:
+      - "50051:50051"
+    networks:
+      - iata-finder_network
+    restart: always
+    working_dir: "/go/src/github.com/abelgoodwin1988/iata-finder"
+
+networks:
+  iata-finder_network:
+    driver: "bridge"

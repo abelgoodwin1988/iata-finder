@@ -1,4 +1,4 @@
-package main
+package models
 
 // Airline is a struct representing openflights data for
 //	IATA airline data

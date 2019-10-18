@@ -22,9 +22,7 @@ RUN apk update && apk add ca-certificates
 # Bring the built binary over
 COPY --from=builder /go/src/github.com/abelgoodwin1988/iata-finder/iata-finder .
 COPY --from=builder /go/src/github.com/abelgoodwin1988/iata-finder/configs/ ./configs/
-# Create empty CSV's so we dont crash. We should make the code wait for the files or do some
-#   kind of async channel running; don't serve the API until the dataCollector has run once
-RUN mkdir ./assets/ && touch assets/airports.csv && touch assets/airlines.csv
+
 ENTRYPOINT ./iata-finder
 
 # Expose the standard gRPC port

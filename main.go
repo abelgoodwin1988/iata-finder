@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"sync"
 	"time"
 
 	configmodels "abelgoodwin1988/iata-finder/configs/models"
@@ -25,6 +26,8 @@ var ds dataservice.Dataservice
 type server struct{}
 
 func main() {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	ctxLogger.Info("Starting iata-finder data service")
 	pwd, _ := os.Getwd()
 	ds = dataservice.Dataservice{
@@ -36,7 +39,8 @@ func main() {
 		FileType:        ".csv",
 		Interval:        time.Hour * 24,
 	}
-	ds.Init()
+	ds.Init(&wg)
+	wg.Wait()
 
 	ctxLogger.Info("Starting iata-finder service")
 	// load config values for rpc

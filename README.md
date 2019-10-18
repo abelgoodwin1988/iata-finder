@@ -20,6 +20,10 @@ I was having trouble finding an API that easily made available airport & airline
 
 ## Install
 
+To start the service, run `make` which handles the creation of the docker container and starts it.
+
+## Usage
+
 ## Todo
 
 - Implement struct for managing the db connection in the ETL script.

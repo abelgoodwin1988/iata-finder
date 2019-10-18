@@ -12,6 +12,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -37,13 +38,14 @@ type Dataservice struct {
 }
 
 // Init Initalizes the dataservice collector
-func (d *Dataservice) Init() {
+func (d *Dataservice) Init(wg *sync.WaitGroup) {
 	go func() {
 		for {
 			// Collect the data
 			d.dataCollector()
 			// Parse the data
 			d.parseHandler()
+			wg.Done()
 			// Let's be kind to our friends open flight data and consume infrequently
 			time.Sleep(d.Interval)
 		}
@@ -63,10 +65,11 @@ func (d *Dataservice) dataCollector() {
 		defer resp.Body.Close()
 
 		// Create space for the destination of the file on our server
+		os.MkdirAll(d.DataDestination, os.ModePerm)
 		outPath := strings.Replace(fmt.Sprintf("%s/%s", d.DataDestination, path.Base(urlTarget)), ".dat", d.FileType, -1)
 		out, err := os.Create(outPath)
 		if err != nil {
-			ctxLogger.WithError(err).Errorf("Error creating file at %s", d.DataDestination)
+			ctxLogger.WithError(err).Errorf("Error creating file at: %s", outPath)
 		}
 		defer out.Close()
 

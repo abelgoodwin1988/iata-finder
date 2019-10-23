@@ -20,6 +20,9 @@ I was having trouble finding an API that easily made available airport & airline
 
 ## Install
 
+**Configs**
+Check the `./configs` directory for any `.example.toml` files, copy them and drop the `.example`. Fill out the values appropriately. Each config should have comments that explain what any non-obvious or standard values should be.
+
 To start the service, run `make` which handles the creation of the docker image and creates a container from it.
 
 ## Usage

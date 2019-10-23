@@ -1,3 +1,6 @@
+# network refers to what network protocol; such as tcp or udp
 network=""
+# IP refers to the ip that the service should be listening on
 ip=""
+# The port specifies where the service should listen and for rpc is default 50051
 port=""

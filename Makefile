@@ -3,7 +3,7 @@
 all: vendor dockerbuild containerup
 
 vendor:
-	@go mod downlad
+	@go mod download
 	@go mod vendor
 
 dockerbuild:

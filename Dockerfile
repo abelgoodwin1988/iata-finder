@@ -10,7 +10,6 @@ WORKDIR /go/src/github.com/abelgoodwin1988/iata-finder
 ADD . .
 ENV GO111MODULE=on
 RUN go build -mod=vendor -o ./iata-finder
-RUN ls -a
 
 # Build a leaner image with just the binary
 FROM alpine:latest

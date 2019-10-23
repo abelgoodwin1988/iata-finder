@@ -87,7 +87,32 @@ func (*server) GetAirport(ctx context.Context, in *iatafinder.AirportDescriptor)
 }
 
 func (*server) GetAirportIATA(ctx context.Context, in *iatafinder.IATA) (*iatafinder.Airport, error) {
-	return &iatafinder.Airport{Iata: "success", Name: "JFK"}, nil
+	iata := in.GetIata()
+	for _, airport := range ds.Data.Airports {
+		if airport.Iata == iata {
+			ctxLogger.WithFields(logrus.Fields{
+				"Method": "GetAirportIata",
+				"Found":  true,
+			}).Debugf("\nFound Airport by IATA code:\n %s\n", airport)
+			return &iatafinder.Airport{
+				Id:                  int32(airport.ID),
+				Name:                airport.Name,
+				City:                airport.City,
+				Country:             airport.Country,
+				Iata:                airport.Iata,
+				Icao:                airport.Icao,
+				Latitude:            airport.Latitude,
+				Longitude:           airport.Longitude,
+				Altitude:            airport.Altitude,
+				Timezone:            airport.Tz,
+				DaylightSavingsTime: airport.DaylightSavingsTime,
+				Type:                airport.TypeField,
+				Source:              airport.Source,
+			}, nil
+		}
+	}
+	ctxLogger.Errorf("Failed to find %s in dataset for IATA's", iata)
+	return nil, fmt.Errorf("Failed to find %s in dataset for IATA's", iata)
 }
 
 func (*server) GetAirportICAO(ct context.Context, in *iatafinder.ICAO) (*iatafinder.Airport, error) {

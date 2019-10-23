@@ -22,9 +22,9 @@ var ctxLogger = logger.CtxLogger.WithField("package", "dataservice")
 
 type data struct {
 	// wg       sync.WaitGroup
-	updated  time.Time
-	airports models.Airports
-	airlines models.Airlines
+	Updated  time.Time
+	Airports models.Airports
+	Airlines models.Airlines
 }
 
 // Dataservice exposes the methods and data gathered by
@@ -33,7 +33,7 @@ type Dataservice struct {
 	URLTargets      []string
 	DataDestination string
 	FileType        string
-	data            data
+	Data            data
 	Interval        time.Duration
 }
 
@@ -101,7 +101,7 @@ func (d *Dataservice) parseHandler() {
 			ctxLogger.WithError(err).Error("Error reading file %s", file)
 		}
 		// line = setNullValues(line, "\N")
-		d.data.airports = append(d.data.airports, models.Airport{
+		d.Data.Airports = append(d.Data.Airports, models.Airport{
 			ID:                  mustAtoi(line[0]),
 			Name:                line[1],
 			City:                line[2],
@@ -134,7 +134,7 @@ func (d *Dataservice) parseHandler() {
 			ctxLogger.WithError(err).Error("Error reading file %s", file)
 		}
 		// line = setNullValues(line, "\N")
-		d.data.airlines = append(d.data.airlines, models.Airline{
+		d.Data.Airlines = append(d.Data.Airlines, models.Airline{
 			ID:       mustAtoi(line[0]),
 			Name:     line[1],
 			Alias:    line[2],
@@ -145,23 +145,23 @@ func (d *Dataservice) parseHandler() {
 			Active:   line[7],
 		})
 	}
-	ctxLogger.WithFields(logrus.Fields{"Airports": len(d.data.airports), "Airlines": len(d.data.airlines)}).Debug("Values Read In")
+	ctxLogger.WithFields(logrus.Fields{"Airports": len(d.Data.Airports), "Airlines": len(d.Data.Airlines)}).Debug("Values Read In")
 	ctxLogger.Info("Finished Parse Handling")
 }
 
 // GetAirlines returns the dataservice current airlines
 func (d *Dataservice) GetAirlines() models.Airlines {
-	return d.data.airlines
+	return d.Data.Airlines
 }
 
 // GetAirports returns the dataservice current airports
 func (d *Dataservice) GetAirports() models.Airports {
-	return d.data.airports
+	return d.Data.Airports
 }
 
 // GetUpdate returns the dataservice current airlines
 func (d *Dataservice) GetUpdate() time.Time {
-	return d.data.updated
+	return d.Data.Updated
 }
 
 func mustAtoi(s string) int {

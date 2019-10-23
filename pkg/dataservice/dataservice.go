@@ -1,8 +1,8 @@
 package dataservice
 
 import (
-	"abelgoodwin1988/iata-finder/models"
 	"abelgoodwin1988/iata-finder/pkg/logger"
+	iatafinder "abelgoodwin1988/iata-finder/rpc"
 	"bufio"
 	"encoding/csv"
 	"fmt"
@@ -23,8 +23,8 @@ var ctxLogger = logger.CtxLogger.WithField("package", "dataservice")
 type data struct {
 	// wg       sync.WaitGroup
 	Updated  time.Time
-	Airports models.Airports
-	Airlines models.Airlines
+	Airports iatafinder.Airports
+	Airlines iatafinder.Airlines
 }
 
 // Dataservice exposes the methods and data gathered by
@@ -101,8 +101,8 @@ func (d *Dataservice) parseHandler() {
 			ctxLogger.WithError(err).Error("Error reading file %s", file)
 		}
 		// line = setNullValues(line, "\N")
-		d.Data.Airports = append(d.Data.Airports, models.Airport{
-			ID:                  mustAtoi(line[0]),
+		d.Data.Airports.Airports = append(d.Data.Airports.Airports, &iatafinder.Airport{
+			Id:                  mustAtoi(line[0]),
 			Name:                line[1],
 			City:                line[2],
 			Country:             line[3],
@@ -114,7 +114,7 @@ func (d *Dataservice) parseHandler() {
 			Timezone:            line[9],
 			DaylightSavingsTime: line[10],
 			Tz:                  line[11],
-			TypeField:           line[12],
+			Type:                line[12],
 			Source:              line[13],
 		})
 	}
@@ -134,7 +134,7 @@ func (d *Dataservice) parseHandler() {
 			ctxLogger.WithError(err).Error("Error reading file %s", file)
 		}
 		// line = setNullValues(line, "\N")
-		d.Data.Airlines = append(d.Data.Airlines, models.Airline{
+		d.Data.Airlines.Airlines = append(d.Data.Airlines.Airlines, &iatafinder.Airline{
 			ID:       mustAtoi(line[0]),
 			Name:     line[1],
 			Alias:    line[2],
@@ -145,17 +145,17 @@ func (d *Dataservice) parseHandler() {
 			Active:   line[7],
 		})
 	}
-	ctxLogger.WithFields(logrus.Fields{"Airports": len(d.Data.Airports), "Airlines": len(d.Data.Airlines)}).Debug("Values Read In")
+	ctxLogger.WithFields(logrus.Fields{"Airports": len(d.Data.Airports.Airports), "Airlines": len(d.Data.Airlines.Airlines)}).Debug("Values Read In")
 	ctxLogger.Info("Finished Parse Handling")
 }
 
 // GetAirlines returns the dataservice current airlines
-func (d *Dataservice) GetAirlines() models.Airlines {
+func (d *Dataservice) GetAirlines() iatafinder.Airlines {
 	return d.Data.Airlines
 }
 
 // GetAirports returns the dataservice current airports
-func (d *Dataservice) GetAirports() models.Airports {
+func (d *Dataservice) GetAirports() iatafinder.Airports {
 	return d.Data.Airports
 }
 
@@ -164,14 +164,14 @@ func (d *Dataservice) GetUpdate() time.Time {
 	return d.Data.Updated
 }
 
-func mustAtoi(s string) int {
+func mustAtoi(s string) int32 {
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		ctxLogger.WithError(err).Errorf("Failed to convert string %s to int", s)
-		var zero int
+		var zero int32
 		return zero
 	}
-	return i
+	return int32(i)
 }
 
 func mustFloat(s string) float64 {

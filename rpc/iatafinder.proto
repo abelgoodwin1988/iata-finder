@@ -29,7 +29,22 @@ message Airport {
 }
 
 message Airports {
-    repeated Airport airport        = 1;
+    repeated Airport airports        = 1;
+}
+
+message Airline {
+	int32   ID       = 1;
+	string  Name     = 2;
+	string  Alias    = 3;
+	string  Iata     = 4;
+	string  Icao     = 5;
+	string  Callsign = 6;
+	string  Country  = 7;
+	string  Active   = 8;
+}
+
+message Airlines {
+    repeated Airline airlines = 1;
 }
 
 message IATA {

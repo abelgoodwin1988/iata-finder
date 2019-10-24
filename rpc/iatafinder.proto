@@ -7,6 +7,10 @@ service iatafinder {
     rpc GetAirports(AirportDescriptor) returns(Airports) {}
     rpc GetAirportIATA(IATA) returns (Airport) {}
     rpc GetAirportICAO(ICAO) returns (Airport) {}
+    rpc GetAllAirlines(EmptyRequest) returns(Airlines) {}
+    rpc GetAirlines(AirlineDescriptor) returns(Airlines) {}
+    rpc GetAirlineIATA(IATA) returns (Airline) {}
+    rpc GetAirlineICAO(ICAO) returns (Airline) {}
 }
 
 message EmptyRequest {}
@@ -56,5 +60,9 @@ message ICAO {
 }
 
 message AirportDescriptor {
+    string descriptor               = 1;
+}
+
+message AirlineDescriptor {
     string descriptor               = 1;
 }

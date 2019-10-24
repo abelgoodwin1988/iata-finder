@@ -1,5 +1,4 @@
 .PHONY: all
-
 all: vendor dockerbuild containerup
 
 vendor:
@@ -13,3 +12,8 @@ dockerbuild:
 containerup:
 	@echo "...composing container iata-finder"
 	@sh -c  "docker-compose up"
+
+.PHONY: rpc
+rpc:
+	@echo "...generating .pb.go file"
+	@protoc rpc/iatafinder.proto --go_out=plugins=grpc:.

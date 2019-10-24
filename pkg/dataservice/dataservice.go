@@ -3,13 +3,9 @@ package dataservice
 import (
 	"abelgoodwin1988/iata-finder/pkg/logger"
 	iatafinder "abelgoodwin1988/iata-finder/rpc"
-	"bufio"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,11 +16,17 @@ import (
 
 var ctxLogger = logger.CtxLogger.WithField("package", "dataservice")
 
+type csvType struct {
+	Reader io.Reader
+	Name   string
+}
+
 type data struct {
 	// wg       sync.WaitGroup
 	Updated  time.Time
 	Airports iatafinder.Airports
 	Airlines iatafinder.Airlines
+	CSVs     []csvType
 }
 
 // Dataservice exposes the methods and data gathered by
@@ -62,22 +64,7 @@ func (d *Dataservice) dataCollector() {
 		if err != nil {
 			ctxLogger.WithError(err).Errorf("Failed to Get asset from URL: %s", urlTarget)
 		}
-		defer resp.Body.Close()
-
-		// Create space for the destination of the file on our server
-		os.MkdirAll(d.DataDestination, os.ModePerm)
-		outPath := strings.Replace(fmt.Sprintf("%s/%s", d.DataDestination, path.Base(urlTarget)), ".dat", d.FileType, -1)
-		out, err := os.Create(outPath)
-		if err != nil {
-			ctxLogger.WithError(err).Errorf("Error creating file at: %s", outPath)
-		}
-		defer out.Close()
-
-		// Write the body to file
-		_, err = io.Copy(out, resp.Body)
-		if err != nil {
-			ctxLogger.WithError(err).Error("Failed to write response body to file")
-		}
+		d.Data.CSVs = append(d.Data.CSVs, csvType{resp.Body, urlTarget})
 	}
 }
 
@@ -85,66 +72,49 @@ func (d *Dataservice) dataCollector() {
 //	csv's to go data structs and returns them
 func (d *Dataservice) parseHandler() {
 	ctxLogger.Debug("Starting Parse Handler")
+	for _, csvReader := range d.Data.CSVs {
+		reader := csv.NewReader(csvReader.Reader)
+		for {
+			line, err := reader.Read()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				ctxLogger.WithError(err).Error("Error reading reader %s", csvReader.Name)
+			}
 
-	// Parse the airports information
-	file := fmt.Sprintf("%s/airports%s", d.DataDestination, d.FileType)
-	csvF, err := os.Open(file)
-	if err != nil {
-		ctxLogger.WithError(err).Errorf("Error opening file %s", file)
-	}
-	reader := csv.NewReader(bufio.NewReader(csvF))
-	for {
-		line, err := reader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			ctxLogger.WithError(err).Error("Error reading file %s", file)
+			if strings.Contains(csvReader.Name, "airport") {
+				d.Data.Airports.Airports = append(d.Data.Airports.Airports, &iatafinder.Airport{
+					Id:                  mustAtoi(line[0]),
+					Name:                line[1],
+					City:                line[2],
+					Country:             line[3],
+					Iata:                line[4],
+					Icao:                line[5],
+					Latitude:            mustFloat(line[6]),
+					Longitude:           mustFloat(line[7]),
+					Altitude:            mustFloat(line[8]),
+					Timezone:            line[9],
+					DaylightSavingsTime: line[10],
+					Tz:                  line[11],
+					Type:                line[12],
+					Source:              line[13],
+				})
+			} else if strings.Contains(csvReader.Name, "airline") {
+				d.Data.Airlines.Airlines = append(d.Data.Airlines.Airlines, &iatafinder.Airline{
+					ID:       mustAtoi(line[0]),
+					Name:     line[1],
+					Alias:    line[2],
+					Iata:     line[3],
+					Icao:     line[4],
+					Callsign: line[5],
+					Country:  line[6],
+					Active:   line[7],
+				})
+			}
 		}
-		// line = setNullValues(line, "\N")
-		d.Data.Airports.Airports = append(d.Data.Airports.Airports, &iatafinder.Airport{
-			Id:                  mustAtoi(line[0]),
-			Name:                line[1],
-			City:                line[2],
-			Country:             line[3],
-			Iata:                line[4],
-			Icao:                line[5],
-			Latitude:            mustFloat(line[6]),
-			Longitude:           mustFloat(line[7]),
-			Altitude:            mustFloat(line[8]),
-			Timezone:            line[9],
-			DaylightSavingsTime: line[10],
-			Tz:                  line[11],
-			Type:                line[12],
-			Source:              line[13],
-		})
+
 	}
 
-	// Parse the airlines information
-	file = fmt.Sprintf("%s/airlines%s", d.DataDestination, d.FileType)
-	csvF, err = os.Open(file)
-	if err != nil {
-		ctxLogger.WithError(err).Errorf("Error opening file %s", file)
-	}
-	reader = csv.NewReader(bufio.NewReader(csvF))
-	for {
-		line, error := reader.Read()
-		if error == io.EOF {
-			break
-		} else if error != nil {
-			ctxLogger.WithError(err).Error("Error reading file %s", file)
-		}
-		// line = setNullValues(line, "\N")
-		d.Data.Airlines.Airlines = append(d.Data.Airlines.Airlines, &iatafinder.Airline{
-			ID:       mustAtoi(line[0]),
-			Name:     line[1],
-			Alias:    line[2],
-			Iata:     line[3],
-			Icao:     line[4],
-			Callsign: line[5],
-			Country:  line[6],
-			Active:   line[7],
-		})
-	}
 	ctxLogger.WithFields(logrus.Fields{"Airports": len(d.Data.Airports.Airports), "Airlines": len(d.Data.Airlines.Airlines)}).Debug("Values Read In")
 	ctxLogger.Info("Finished Parse Handling")
 }

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -82,8 +83,23 @@ func rpcListenAndServe(rpcConfig *configmodels.RPCConfig) (net.Listener, *grpc.S
 	return lis, grpc.NewServer()
 }
 
-func (*server) GetAirport(ctx context.Context, in *iatafinder.AirportDescriptor) (*iatafinder.Airports, error) {
-	return &iatafinder.Airports{}, nil
+func (*server) GetAirports(ctx context.Context, in *iatafinder.AirportDescriptor) (*iatafinder.Airports, error) {
+	descriptor := in.GetDescriptor_()
+	airports := []*iatafinder.Airport{}
+	for _, airport := range ds.Data.Airports.Airports {
+		// name, city, or country partial matches
+		if strings.Contains(airport.GetCity(), descriptor) ||
+			strings.Contains(airport.GetCountry(), descriptor) ||
+			strings.Contains(airport.GetName(), descriptor) {
+			airports = append(airports, airport)
+		}
+	}
+	ctxLogger.WithFields(logrus.Fields{
+		"Method": "GetAirports",
+		"Found":  len(airports) > 0,
+	})
+	airportss := &iatafinder.Airports{Airports: airports}
+	return airportss, nil
 }
 
 func (*server) GetAirportIATA(ctx context.Context, in *iatafinder.IATA) (*iatafinder.Airport, error) {
@@ -103,9 +119,25 @@ func (*server) GetAirportIATA(ctx context.Context, in *iatafinder.IATA) (*iatafi
 }
 
 func (*server) GetAirportICAO(ct context.Context, in *iatafinder.ICAO) (*iatafinder.Airport, error) {
-	return &iatafinder.Airport{}, nil
+	icao := in.GetIcao()
+	for _, airport := range ds.Data.Airports.Airports {
+		if airport.Icao == icao {
+			ctxLogger.WithFields(logrus.Fields{
+				"Method": "GetAirportIATA",
+				"Found":  true,
+				"ICAO":   icao,
+			}).Debug()
+			return airport, nil
+		}
+	}
+	ctxLogger.Errorf("Failed to find %s in dataset for ICAO's", icao)
+	return nil, fmt.Errorf("Failed to find %s in dataset for ICAO's", icao)
 }
 
-func (*server) GetAirports(ctx context.Context, in *iatafinder.EmptyRequest) (*iatafinder.Airports, error) {
-	return &iatafinder.Airports{}, nil
+func (*server) GetAllAirports(ctx context.Context, in *iatafinder.EmptyRequest) (*iatafinder.Airports, error) {
+	ctxLogger.WithFields(logrus.Fields{
+		"Method": "GetAllAirports",
+		"Found":  true,
+	}).Debug()
+	return &ds.Data.Airports, nil
 }

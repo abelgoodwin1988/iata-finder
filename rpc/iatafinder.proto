@@ -3,8 +3,8 @@ syntax = "proto3";
 package iatafinder;
 
 service iatafinder {
-    rpc GetAirports(EmptyRequest) returns(Airports) {}
-    rpc GetAirport(AirportDescriptor) returns(Airports) {}
+    rpc GetAllAirports(EmptyRequest) returns(Airports) {}
+    rpc GetAirports(AirportDescriptor) returns(Airports) {}
     rpc GetAirportIATA(IATA) returns (Airport) {}
     rpc GetAirportICAO(ICAO) returns (Airport) {}
 }

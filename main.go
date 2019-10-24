@@ -141,3 +141,62 @@ func (*server) GetAllAirports(ctx context.Context, in *iatafinder.EmptyRequest) 
 	}).Debug()
 	return &ds.Data.Airports, nil
 }
+
+func (*server) GetAirlineIATA(ctx context.Context, in *iatafinder.IATA) (*iatafinder.Airline, error) {
+	iata := in.GetIata()
+	for _, airline := range ds.Data.Airlines.Airlines {
+		if airline.Iata == iata {
+			ctxLogger.WithFields(logrus.Fields{
+				"Method": "GetAirlineIATA",
+				"Found":  true,
+				"IATA":   iata,
+			}).Debug()
+			return airline, nil
+		}
+	}
+	ctxLogger.Errorf("Failed to find %s in dataset for Airport IATA's", iata)
+	return nil, fmt.Errorf("Failed to find %s in dataset for Airport IATA's", iata)
+}
+
+func (*server) GetAirlineICAO(ctx context.Context, in *iatafinder.ICAO) (*iatafinder.Airline, error) {
+	icao := in.GetIcao()
+	for _, airline := range ds.Data.Airlines.Airlines {
+		if airline.Icao == icao {
+			ctxLogger.WithFields(logrus.Fields{
+				"Method": "GetAirlineICAO",
+				"Found":  true,
+				"ICAO":   icao,
+			}).Debug()
+			return airline, nil
+		}
+	}
+	ctxLogger.Errorf("Failed to find %s in dataset for Airport ICAO's", icao)
+	return nil, fmt.Errorf("Failed to find %s in dataset for Airport ICAO's", icao)
+}
+
+func (*server) GetAllAirlines(ctx context.Context, in *iatafinder.EmptyRequest) (*iatafinder.Airlines, error) {
+	ctxLogger.WithFields(logrus.Fields{
+		"Method": "GetAllAirlines",
+		"Found":  true,
+	}).Debug()
+	return &ds.Data.Airlines, nil
+}
+
+func (*server) GetAirlines(ctx context.Context, in *iatafinder.AirlineDescriptor) (*iatafinder.Airlines, error) {
+	descriptor := in.GetDescriptor_()
+	airlines := []*iatafinder.Airline{}
+	for _, airline := range ds.Data.Airlines.Airlines {
+		if strings.Contains(airline.GetAlias(), descriptor) ||
+			strings.Contains(airline.GetCountry(), descriptor) ||
+			strings.Contains(airline.GetCallsign(), descriptor) ||
+			strings.Contains(airline.GetName(), descriptor) {
+			airlines = append(airlines, airline)
+		}
+	}
+	ctxLogger.WithFields(logrus.Fields{
+		"Method": "GetAirlines",
+		"Found":  len(airlines) > 0,
+	}).Debug()
+
+	return &iatafinder.Airlines{Airlines: airlines}, nil
+}

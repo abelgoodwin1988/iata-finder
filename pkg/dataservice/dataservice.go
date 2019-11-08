@@ -44,9 +44,9 @@ func (d *Dataservice) Init(wg *sync.WaitGroup) {
 	go func() {
 		for {
 			// Collect the data
-			d.dataCollector()
+			d.DataCollector()
 			// Parse the data
-			d.parseHandler()
+			d.ParseHandler()
 			wg.Done()
 			// Let's be kind to our friends open flight data and consume infrequently
 			time.Sleep(d.Interval)
@@ -54,8 +54,8 @@ func (d *Dataservice) Init(wg *sync.WaitGroup) {
 	}()
 }
 
-// dataCollector requests the csv's for airports and airlines
-func (d *Dataservice) dataCollector() {
+// DataCollector requests the csv's for airports and airlines
+func (d *Dataservice) DataCollector() {
 	ctxLogger.WithFields(logrus.Fields{"Dataservice:": d}).Debugf("Starting datacollector")
 	for _, urlTarget := range d.URLTargets {
 		ctxLogger.Debugf("Fetching %s", urlTarget)
@@ -70,7 +70,7 @@ func (d *Dataservice) dataCollector() {
 
 // ParseHandler routes and manages the parsing process from
 //	csv's to go data structs and returns them
-func (d *Dataservice) parseHandler() {
+func (d *Dataservice) ParseHandler() {
 	ctxLogger.Debug("Starting Parse Handler")
 	for _, csvReader := range d.Data.CSVs {
 		reader := csv.NewReader(csvReader.Reader)

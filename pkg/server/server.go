@@ -86,7 +86,7 @@ func (*server) GetAirports(ctx context.Context, in *iatafinder.AirportDescriptor
 	ctxLogger.WithFields(logrus.Fields{
 		"Method": "GetAirports",
 		"Found":  len(airports) > 0,
-	})
+	}).Debug()
 	airportss := &iatafinder.Airports{Airports: airports}
 	return airportss, nil
 }

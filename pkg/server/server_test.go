@@ -55,6 +55,7 @@ func TestServer(t *testing.T) {
 	* SUBTESTS
 	 */
 
+	t.Run("GetAirports", getAirports)
 	t.Run("GetAirportIATA", getAirportsIATA)
 
 	/*
@@ -68,6 +69,31 @@ func TestServer(t *testing.T) {
 ** Individual testing function definitions
  */
 
+func getAirports(t *testing.T) {
+	tests := []struct {
+		descriptor string
+		length     int
+	}{
+		{"Budapest", 2},
+		{"Penang", 1},
+		{"Buenos Aires", 3},
+	}
+
+	for _, test := range tests {
+		req := &iatafinder.AirportDescriptor{Descriptor_: test.descriptor}
+		res, err := c.GetAirports(context.Background(), req)
+
+		if err != nil {
+			t.Errorf("error retrieving airports for descriptor: %v\n", req)
+			return
+		}
+
+		if len(res.Airports) != test.length {
+			t.Errorf("GetAirports(%v) - Expecting length: %v / Got length: %v", req, test.length, len(res.Airports))
+		}
+	}
+}
+
 func getAirportsIATA(t *testing.T) {
 	tests := []struct {
 		iataIn string
@@ -75,6 +101,8 @@ func getAirportsIATA(t *testing.T) {
 		name   string
 	}{
 		{"ONT", 3734, "Ontario International Airport"},
+		{"FRA", 340, "Frankfurt am Main Airport"},
+		{"ICN", 3930, "Incheon International Airport"},
 	}
 
 	for _, test := range tests {
@@ -87,11 +115,11 @@ func getAirportsIATA(t *testing.T) {
 		}
 
 		if res.Id != test.id {
-			t.Errorf("GetAirportIATA(%v) - Expecting Id: %v / Got id = %v\n", req, res.Id, test.id)
+			t.Errorf("GetAirportIATA(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.Id)
 		}
 
 		if res.Name != test.name {
-			t.Errorf("GetAirportIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, res.Name, test.name)
+			t.Errorf("GetAirportIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
 		}
 	}
 }

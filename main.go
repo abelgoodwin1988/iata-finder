@@ -32,5 +32,5 @@ func main() {
 	ds.Init(&wg)
 	wg.Wait()
 
-	server.Create(&ds)
+	server.Create(&ds, "configs/rpc.config.toml")
 }

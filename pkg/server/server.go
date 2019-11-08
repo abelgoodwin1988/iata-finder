@@ -22,7 +22,7 @@ var ds *dataservice.Dataservice
 type server struct{}
 
 // Create initializes the rpc server
-func Create(dataservice *dataservice.Dataservice) (*grpc.Server, error) {
+func Create(dataservice *dataservice.Dataservice, configPath string) (*grpc.Server, error) {
 	ctxLogger.Info("Starting iata-finder service")
 
 	if dataservice == nil {
@@ -34,7 +34,7 @@ func Create(dataservice *dataservice.Dataservice) (*grpc.Server, error) {
 
 	// load config values for rpc
 	rpcConfig := configmodels.RPCConfig{}
-	loadRPCConfig(&rpcConfig)
+	loadRPCConfig(&rpcConfig, configPath)
 
 	// Configure and create rpc server
 	lis, s := rpcListenAndServe(&rpcConfig)
@@ -50,8 +50,8 @@ func Create(dataservice *dataservice.Dataservice) (*grpc.Server, error) {
 	return s, nil
 }
 
-func loadRPCConfig(rpcConfig *configmodels.RPCConfig) {
-	data, err := ioutil.ReadFile("configs/rpc.config.toml")
+func loadRPCConfig(rpcConfig *configmodels.RPCConfig, configPath string) {
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		ctxLogger.WithError(err).Error("Failed to read rpc.config.go")
 	}

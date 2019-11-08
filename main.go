@@ -32,5 +32,11 @@ func main() {
 	ds.Init(&wg)
 	wg.Wait()
 
-	server.Create(&ds, "configs/rpc.config.toml")
+	lis, s := server.Create(&ds, "configs/rpc.config.toml")
+
+	// Start the rpc server and if it fails, log it and give up all hope
+	if err := s.Serve(lis); err != nil {
+		ctxLogger.Fatalf("Failed to start iatafinder server\n%v\n", err)
+	}
+
 }

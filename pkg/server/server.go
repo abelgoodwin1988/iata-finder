@@ -22,12 +22,12 @@ var ds *dataservice.Dataservice
 type server struct{}
 
 // Create initializes the rpc server
-func Create(dataservice *dataservice.Dataservice, configPath string) (*grpc.Server, error) {
+func Create(dataservice *dataservice.Dataservice, configPath string) (net.Listener, *grpc.Server) {
 	ctxLogger.Info("Starting iata-finder service")
 
 	if dataservice == nil {
-		ctxLogger.Error("No Dataservice provided. Failed rpc server")
-		return nil, fmt.Errorf("No Dataservice provided. Failed rpc server")
+		// Will warn for now
+		ctxLogger.Warningln("No Dataservice provided")
 	}
 
 	ds = dataservice
@@ -37,17 +37,16 @@ func Create(dataservice *dataservice.Dataservice, configPath string) (*grpc.Serv
 	loadRPCConfig(&rpcConfig, configPath)
 
 	// Configure and create rpc server
-	lis, s := rpcListenAndServe(&rpcConfig)
+	lis := rpcListen(&rpcConfig)
 
+	s := grpc.NewServer()
 	iatafinder.RegisterIatafinderServer(s, &server{})
 
-	ctxLogger.WithFields(logrus.Fields{"at": fmt.Sprintf("%s:%s", rpcConfig.IP, rpcConfig.Port)}).Info("Serving iata-finder service")
-	// Start the rpc server and if it fails, log it and give up all hope
-	if err := s.Serve(lis); err != nil {
-		ctxLogger.Fatalf("Failed to start iatafinder server\n%v\n", err)
-	}
+	ctxLogger.WithFields(logrus.Fields{"at": fmt.Sprintf("%s:%s", rpcConfig.IP, rpcConfig.Port)}).Info("iata-finder service configured to be served")
 
-	return s, nil
+	// return listener and registered server. We will serve outside of server
+	// since we may need to run server inside a go routine in test case
+	return lis, s
 }
 
 func loadRPCConfig(rpcConfig *configmodels.RPCConfig, configPath string) {
@@ -60,7 +59,7 @@ func loadRPCConfig(rpcConfig *configmodels.RPCConfig, configPath string) {
 	}
 }
 
-func rpcListenAndServe(rpcConfig *configmodels.RPCConfig) (net.Listener, *grpc.Server) {
+func rpcListen(rpcConfig *configmodels.RPCConfig) net.Listener {
 	network := rpcConfig.Network
 	ip := rpcConfig.IP
 	port := rpcConfig.Port
@@ -70,7 +69,7 @@ func rpcListenAndServe(rpcConfig *configmodels.RPCConfig) (net.Listener, *grpc.S
 		ctxLogger.Fatalf("Listener Failed: %v", err)
 	}
 
-	return lis, grpc.NewServer()
+	return lis
 }
 
 func (*server) GetAirports(ctx context.Context, in *iatafinder.AirportDescriptor) (*iatafinder.Airports, error) {

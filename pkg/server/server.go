@@ -22,12 +22,12 @@ var ds *dataservice.Dataservice
 type server struct{}
 
 // Create initializes the rpc server
-func Create(dataservice *dataservice.Dataservice) error {
+func Create(dataservice *dataservice.Dataservice) (*grpc.Server, error) {
 	ctxLogger.Info("Starting iata-finder service")
 
 	if dataservice == nil {
 		ctxLogger.Error("No Dataservice provided. Failed rpc server")
-		return fmt.Errorf("No Dataservice provided. Failed rpc server")
+		return nil, fmt.Errorf("No Dataservice provided. Failed rpc server")
 	}
 
 	ds = dataservice
@@ -47,7 +47,7 @@ func Create(dataservice *dataservice.Dataservice) error {
 		ctxLogger.Fatalf("Failed to start iatafinder server\n%v\n", err)
 	}
 
-	return nil
+	return s, nil
 }
 
 func loadRPCConfig(rpcConfig *configmodels.RPCConfig) {

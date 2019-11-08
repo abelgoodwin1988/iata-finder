@@ -12,8 +12,12 @@ import (
 	"google.golang.org/grpc"
 )
 
+var c iatafinder.IatafinderClient
+
 func TestServer(t *testing.T) {
-	// SETUP
+	/*
+	* SETUP - use single client connection and data source for all tests
+	 */
 	pwd, _ := os.Getwd()
 
 	ds := dataservice.Dataservice{
@@ -45,24 +49,49 @@ func TestServer(t *testing.T) {
 		ctxLogger.Errorf("could not connect: %v\n", err)
 	}
 
-	c := iatafinder.NewIatafinderClient(cc)
+	c = iatafinder.NewIatafinderClient(cc)
 
-	// SUBTESTS
-	t.Run("GetAirportIATA", func(t *testing.T) {
-		req := &iatafinder.IATA{Iata: "ONT"}
+	/*
+	* SUBTESTS
+	 */
+
+	t.Run("GetAirportIATA", getAirportsIATA)
+
+	/*
+	* TEARDOWN
+	 */
+	cc.Close()
+	s.GracefulStop()
+}
+
+/*
+** Individual testing function definitions
+ */
+
+func getAirportsIATA(t *testing.T) {
+	tests := []struct {
+		iataIn string
+		id     int32
+		name   string
+	}{
+		{"ONT", 3734, "Ontario International Airport"},
+	}
+
+	for _, test := range tests {
+		req := &iatafinder.IATA{Iata: test.iataIn}
 		res, err := c.GetAirportIATA(context.Background(), req)
-		expected := "Ontario"
 
 		if err != nil {
-			t.Errorf("error retrieving airport from IATA: %v", req)
+			t.Errorf("error retrieving airport from IATA: %v\n", req)
 			return
 		}
 
-		if res.City != expected {
-			t.Errorf("GetAirportIATA(%v)=%v. Expecting: %v", req, res.City, expected)
+		if res.Id != test.id {
+			t.Errorf("GetAirportIATA(%v) - Expecting Id: %v / Got id = %v\n", req, res.Id, test.id)
 		}
-	})
 
-	// TEARDOWN
-	cc.Close()
+		if res.Name != test.name {
+			t.Errorf("GetAirportIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, res.Name, test.name)
+		}
+	}
 }

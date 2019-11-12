@@ -35,7 +35,7 @@ func TestServer(t *testing.T) {
 	ds.ParseHandler()
 
 	// create server which can use custom config
-	lis, s := Create(&ds, "../../configs/rpc.config.test.toml")
+	lis, s := Create(&ds, "../../configs/rpc.config.toml")
 
 	// Start the rpc server in goroutine so tests can run
 	go func() {

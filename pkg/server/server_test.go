@@ -55,8 +55,15 @@ func TestServer(t *testing.T) {
 	* SUBTESTS
 	 */
 
-	t.Run("GetAirports", getAirports)
-	t.Run("GetAirportIATA", getAirportsIATA)
+	t.Run("GetAirportIATA", getAirportIATA)
+	t.Run("GetAirportICAO", getAirportICAO)
+	// t.Run("GetAirports", getAirports)
+	// t.Run("GetAllAirports", getAllAirports)
+
+	t.Run("GetAirlineIATA", getAirlineIATA)
+	t.Run("GetAirlineICAO", getAirlineICAO)
+	// t.Run("GetAirlines", getAirlines)
+	// t.Run("GetAllAirlines", getAllAirlines)
 
 	/*
 	* TEARDOWN
@@ -68,6 +75,66 @@ func TestServer(t *testing.T) {
 /*
 ** Individual testing function definitions
  */
+
+func getAirportIATA(t *testing.T) {
+	tests := []struct {
+		iataIn string
+		id     int32
+		name   string
+	}{
+		{"ONT", 3734, "Ontario International Airport"},
+		{"FRA", 340, "Frankfurt am Main Airport"},
+		{"ICN", 3930, "Incheon International Airport"},
+	}
+
+	for _, test := range tests {
+		req := &iatafinder.IATA{Iata: test.iataIn}
+		res, err := c.GetAirportIATA(context.Background(), req)
+
+		if err != nil {
+			t.Errorf("error retrieving airport from IATA: %v\n", req)
+			return
+		}
+
+		if res.Id != test.id {
+			t.Errorf("GetAirportIATA(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.Id)
+		}
+
+		if res.Name != test.name {
+			t.Errorf("GetAirportIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
+		}
+	}
+}
+
+func getAirportICAO(t *testing.T) {
+	tests := []struct {
+		icaoIn string
+		id     int32
+		name   string
+	}{
+		{"KONT", 3734, "Ontario International Airport"},
+		{"EDDF", 340, "Frankfurt am Main Airport"},
+		{"RKSI", 3930, "Incheon International Airport"},
+	}
+
+	for _, test := range tests {
+		req := &iatafinder.ICAO{Icao: test.icaoIn}
+		res, err := c.GetAirportICAO(context.Background(), req)
+
+		if err != nil {
+			t.Errorf("error retrieving airport from ICAO: %v\n", req)
+			return
+		}
+
+		if res.Id != test.id {
+			t.Errorf("GetAirportICAO(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.Id)
+		}
+
+		if res.Name != test.name {
+			t.Errorf("GetAirportICAO(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
+		}
+	}
+}
 
 func getAirports(t *testing.T) {
 	tests := []struct {
@@ -94,32 +161,62 @@ func getAirports(t *testing.T) {
 	}
 }
 
-func getAirportsIATA(t *testing.T) {
+func getAirlineIATA(t *testing.T) {
 	tests := []struct {
 		iataIn string
 		id     int32
 		name   string
 	}{
-		{"ONT", 3734, "Ontario International Airport"},
-		{"FRA", 340, "Frankfurt am Main Airport"},
-		{"ICN", 3930, "Incheon International Airport"},
+		{"SQ", 4435, "Singapore Airlines"},
+		{"EY", 2222, "Etihad Airways"},
+		{"IB", 2822, "Iberia Airlines"},
 	}
 
 	for _, test := range tests {
 		req := &iatafinder.IATA{Iata: test.iataIn}
-		res, err := c.GetAirportIATA(context.Background(), req)
+		res, err := c.GetAirlineIATA(context.Background(), req)
 
 		if err != nil {
-			t.Errorf("error retrieving airport from IATA: %v\n", req)
+			t.Errorf("error retrieving airline from IATA: %v\n", req)
 			return
 		}
 
-		if res.Id != test.id {
-			t.Errorf("GetAirportIATA(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.Id)
+		if res.ID != test.id {
+			t.Errorf("GetAirlineIATA(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.ID)
 		}
 
 		if res.Name != test.name {
-			t.Errorf("GetAirportIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
+			t.Errorf("GetAirlineIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
+		}
+	}
+}
+
+func getAirlineICAO(t *testing.T) {
+	tests := []struct {
+		icaoIn string
+		id     int32
+		name   string
+	}{
+		{"SIA", 4435, "Singapore Airlines"},
+		{"ETD", 2222, "Etihad Airways"},
+		{"IBE", 2822, "Iberia Airlines"},
+	}
+
+	for _, test := range tests {
+		req := &iatafinder.ICAO{Icao: test.icaoIn}
+		res, err := c.GetAirlineICAO(context.Background(), req)
+
+		if err != nil {
+			t.Errorf("error retrieving airline from IATA: %v\n", req)
+			return
+		}
+
+		if res.ID != test.id {
+			t.Errorf("GetAirlineIATA(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.ID)
+		}
+
+		if res.Name != test.name {
+			t.Errorf("GetAirlineIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
 		}
 	}
 }

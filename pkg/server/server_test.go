@@ -43,6 +43,7 @@ func TestServer(t *testing.T) {
 			ctxLogger.Fatalf("Failed to start iatafinder server\n%v\n", err)
 		}
 	}()
+
 	// create a client connection for all tests
 	cc, err := grpc.Dial("0.0.0.0:50051", grpc.WithInsecure())
 	if err != nil {
@@ -57,13 +58,13 @@ func TestServer(t *testing.T) {
 
 	t.Run("GetAirportIATA", getAirportIATA)
 	t.Run("GetAirportICAO", getAirportICAO)
-	// t.Run("GetAirports", getAirports)
-	// t.Run("GetAllAirports", getAllAirports)
+	t.Run("GetAirports", getAirports)
+	t.Run("GetAllAirports", getAllAirports)
 
 	t.Run("GetAirlineIATA", getAirlineIATA)
 	t.Run("GetAirlineICAO", getAirlineICAO)
-	// t.Run("GetAirlines", getAirlines)
-	// t.Run("GetAllAirlines", getAllAirlines)
+	t.Run("GetAirlines", getAirlines)
+	t.Run("GetAllAirlines", getAllAirlines)
 
 	/*
 	* TEARDOWN
@@ -144,6 +145,7 @@ func getAirports(t *testing.T) {
 		{"Budapest", 2},
 		{"Penang", 1},
 		{"Buenos Aires", 3},
+		{"ALAERRT", 0},
 	}
 
 	for _, test := range tests {
@@ -158,6 +160,20 @@ func getAirports(t *testing.T) {
 		if len(res.Airports) != test.length {
 			t.Errorf("GetAirports(%v) - Expecting length: %v / Got length: %v", req, test.length, len(res.Airports))
 		}
+	}
+}
+
+func getAllAirports(t *testing.T) {
+	req := &iatafinder.EmptyRequest{}
+	res, err := c.GetAllAirports(context.Background(), req)
+
+	if err != nil {
+		t.Errorf("error retrieving list of all airports: %v\n", req)
+		return
+	}
+
+	if len(res.Airports) < 1 {
+		t.Errorf("GetAllAirports(%v) - Expecting non-zero length - Got length: %v", req, len(res.Airports))
 	}
 }
 
@@ -212,11 +228,51 @@ func getAirlineICAO(t *testing.T) {
 		}
 
 		if res.ID != test.id {
-			t.Errorf("GetAirlineIATA(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.ID)
+			t.Errorf("GetAirlineICAO(%v) - Expecting Id: %v / Got id = %v\n", req, test.id, res.ID)
 		}
 
 		if res.Name != test.name {
-			t.Errorf("GetAirlineIATA(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
+			t.Errorf("GetAirlineICAO(%v) - Expecting Name: %v / Got Name = %v\n", req, test.name, res.Name)
 		}
+	}
+}
+
+func getAirlines(t *testing.T) {
+	tests := []struct {
+		descriptor string
+		length     int
+	}{
+		{"Luft", 20},
+		{"Delta", 7},
+		{"Panam", 7},
+		{"ALAERRT", 0},
+	}
+
+	for _, test := range tests {
+		req := &iatafinder.AirlineDescriptor{Descriptor_: test.descriptor}
+		res, err := c.GetAirlines(context.Background(), req)
+
+		if err != nil {
+			t.Errorf("error retrieving airlines for descriptor: %v\n", req)
+			return
+		}
+
+		if len(res.Airlines) != test.length {
+			t.Errorf("GetAirlines(%v) - Expecting length: %v / Got length: %v", req, test.length, len(res.Airlines))
+		}
+	}
+}
+
+func getAllAirlines(t *testing.T) {
+	req := &iatafinder.EmptyRequest{}
+	res, err := c.GetAllAirlines(context.Background(), req)
+
+	if err != nil {
+		t.Errorf("error retrieving list of all airlines: %v\n", req)
+		return
+	}
+
+	if len(res.Airlines) < 1 {
+		t.Errorf("GetAllAirlines(%v) - Expecting non-zero length - Got length: %v", req, len(res.Airlines))
 	}
 }
